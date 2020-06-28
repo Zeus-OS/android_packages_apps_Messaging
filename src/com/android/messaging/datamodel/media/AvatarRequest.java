@@ -28,6 +28,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.android.messaging.R;
 import com.android.messaging.util.Assert;
@@ -43,12 +44,12 @@ import java.util.List;
 public class AvatarRequest extends UriImageRequest<AvatarRequestDescriptor> {
     private static Bitmap sDefaultPersonBitmap;
     private static Bitmap sDefaultPersonBitmapLarge;
-    private static TypedArray sColors;
+    private TypedArray mColors;
 
     public AvatarRequest(final Context context,
             final AvatarRequestDescriptor descriptor) {
         super(context, descriptor);
-        sColors = context.getResources().obtainTypedArray(R.array.letter_tile_colors);
+        mColors = mContext.getResources().obtainTypedArray(R.array.letter_tile_colors);
     }
 
     @Override
@@ -120,7 +121,7 @@ public class AvatarRequest extends UriImageRequest<AvatarRequestDescriptor> {
 
     private Bitmap renderDefaultAvatar(final int width, final int height) {
         final Bitmap bitmap = getBitmapPool().createOrReuseBitmap(width, height,
-                getBackgroundColor());
+                getBackgroundColor(AvatarUriUtil.getIdentifier(mDescriptor.uri)));
         final Canvas canvas = new Canvas(bitmap);
 
         if (sDefaultPersonBitmap == null) {
@@ -162,7 +163,7 @@ public class AvatarRequest extends UriImageRequest<AvatarRequestDescriptor> {
         final float halfHeight = height / 2;
         final int minOfWidthAndHeight = Math.min(width, height);
         final Bitmap bitmap = getBitmapPool().createOrReuseBitmap(width, height,
-                getBackgroundColor(identifier));
+                getBackgroundColor(AvatarUriUtil.getIdentifier(mDescriptor.uri)));
         final Resources resources = mContext.getResources();
         final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -182,8 +183,15 @@ public class AvatarRequest extends UriImageRequest<AvatarRequestDescriptor> {
         return bitmap;
     }
 
-    private int getBackgroundColor() {
-        return mContext.getResources().getColor(R.color.primary_color);
+    private int getBackgroundColor(final String identifier) {
+        if (!TextUtils.isEmpty(identifier) &&
+                mContext.getResources().getBoolean(R.bool.contact_colors)) {
+            int idcolor = Math.abs(identifier.hashCode()) % mColors.length();
+            return mColors.getColor(idcolor,
+                     mContext.getResources().getColor(R.color.primary_color));
+        } else {
+            return mContext.getResources().getColor(R.color.primary_color);
+        }
     }
 
     @Override
