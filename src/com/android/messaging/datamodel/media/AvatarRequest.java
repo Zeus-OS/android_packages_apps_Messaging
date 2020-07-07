@@ -198,9 +198,4 @@ public class AvatarRequest extends UriImageRequest<AvatarRequestDescriptor> {
     public int getCacheId() {
         return BugleMediaCacheManager.AVATAR_IMAGE_CACHE;
     }
-
-    private int getBackgroundColor(String identifier) {
-        final int color = Math.abs(identifier.hashCode()) % sColors.length();
-        return sColors.getColor(color, mContext.getResources().getColor(R.color.primary_color));
-    }
 }
